@@ -3,5 +3,7 @@ name = "tdt17-task4-football-2025"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
-dependencies = []
+requires-python = ">=3.12"
+dependencies = [
+    "ultralytics>=8.3.226",
+]
