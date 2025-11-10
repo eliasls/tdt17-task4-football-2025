@@ -94,16 +94,22 @@ def check_original_sizes(paths_dict, expected_width=1920, expected_height=1080):
 
         tree = ET.parse(xml_path)
         root = tree.getroot()
-        
-        print("TAG:")
-        print(root.tag)
-        meta = root.findall("meta")
-        print(meta)
-        #task = meta.findall("task")
-        #print(task.tag)
-        
-        
-        orig = root.find("original_size")
+
+        meta_el = root.find("meta")
+        if meta_el is None:
+            entry["status"] = "missing_meta"
+            results[name] = entry
+            continue
+
+        # try 1) /meta/task/original_size
+        orig = None
+        task_el = meta_el.find("task")
+        if task_el is not None:
+            orig = task_el.find("original_size")
+
+        # if not found, try 2) /meta/original_size (your RBK-BODO-PART1/2 case)
+        if orig is None:
+            orig = meta_el.find("original_size")
 
         if orig is None:
             entry["status"] = "missing_original_size"
@@ -112,7 +118,6 @@ def check_original_sizes(paths_dict, expected_width=1920, expected_height=1080):
 
         w_el = orig.find("width")
         h_el = orig.find("height")
-
         w = w_el.text if w_el is not None else None
         h = h_el.text if h_el is not None else None
 
@@ -127,3 +132,73 @@ def check_original_sizes(paths_dict, expected_width=1920, expected_height=1080):
         results[name] = entry
 
     return results
+
+
+
+def sample_image_sizes(match_name, paths_dict, n=5):
+    img_dir = paths_dict[match_name]["images"]
+    files = [f for f in os.listdir(img_dir) if f.lower().endswith((".jpg", ".png"))]
+    sizes = []
+    for f in files[:n]:
+        img_path = os.path.join(img_dir, f)
+        img = cv2.imread(img_path)
+        if img is None:
+            sizes.append((f, None, None))
+        else:
+            h, w = img.shape[:2]
+            sizes.append((f, w, h))
+    return sizes
+
+def load_cvat_metadata(xml_path):
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+
+    meta = root.find("meta")
+    if meta is None:
+        return None, None, None
+
+    task = meta.find("task")
+    if task is not None:
+        orig = task.find("original_size")
+        if orig is not None:
+            w = int(orig.find("width").text)
+            h = int(orig.find("height").text)
+            return w, h, meta
+
+    orig = meta.find("original_size")
+    if orig is not None:
+        w = int(orig.find("width").text)
+        h = int(orig.find("height").text)
+        return w, h, meta
+
+    return None, None, meta
+
+def collect_bbox_areas(xml_path):
+    w, h, _ = load_cvat_metadata(xml_path)
+    if w is None or h is None:
+        raise ValueError(f"Could not find original_size in {xml_path}")
+
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+
+    rel_areas = []   
+    abs_areas = []   
+
+    for track in root.findall("track"):
+        for box in track.findall("box"):
+            xtl = float(box.get("xtl"))
+            ytl = float(box.get("ytl"))
+            xbr = float(box.get("xbr"))
+            ybr = float(box.get("ybr"))
+
+            bw = xbr - xtl  
+            bh = ybr - ytl  
+
+            abs_area = bw * bh                    
+            rel_area = abs_area / (w * h)         
+
+            abs_areas.append(abs_area)
+            rel_areas.append(rel_area)
+
+    return rel_areas, abs_areas
+
