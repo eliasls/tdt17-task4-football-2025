@@ -5,3 +5,4 @@ __pycache__/
 .env
 outputs/
 *.mp4
+.vscode
