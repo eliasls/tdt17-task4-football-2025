@@ -214,6 +214,10 @@ def coco_evaluate(annotation_file: Path, predictions: List[Dict]) -> Dict[str, f
     if not predictions:
         return {"mAP_50_95": 0.0, "mAP_50": 0.0}
 
+    # pycocotools expects the dataset dict to contain an "info" field
+    # even if it is empty. Some custom COCO exports omit it, so we add one.
+    coco_gt.dataset.setdefault("info", {})
+
     coco_dt = coco_gt.loadRes(predictions)
     coco_eval = COCOeval(coco_gt, coco_dt, iouType="bbox")
     coco_eval.evaluate()
