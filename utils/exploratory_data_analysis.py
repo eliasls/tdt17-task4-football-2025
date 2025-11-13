@@ -202,3 +202,39 @@ def collect_bbox_areas(xml_path):
 
     return rel_areas, abs_areas
 
+def load_cvat_track(xml_path):
+    
+    print(xml_path)
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+    tracks = root.findall("track")
+    track1 = tracks[0]
+    track1.get
+    player = 0
+    referee = 0
+    ball = 0
+    event_labels = 0
+    
+    #attri = tracks[0].find("box").find("./attribute[@name='team']")
+    #print(attri.text)
+    
+    for track in tracks:
+        if track.get("label") == "ball":
+            boxes = track.findall("box")
+            ball += len(boxes)
+        elif track.get("label") == "event_labels" or track.get("label") == "event":
+            boxes = track.findall("box")
+            event_labels += len(boxes)
+        else:
+            boxes = track.findall("box")
+            for box in boxes:
+                #print(track.get("label"))
+                if box.find("./attribute[@name='team']").text == "referee":
+                    referee += 1
+                else: 
+                    player += 1
+    
+    return player, referee, ball, event_labels
+
+#def collect_class_stats(xml_path):
+    
