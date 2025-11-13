@@ -1,0 +1,6 @@
+Debug job
+  Directory : /cluster/work/eliasls/tdt17/task4
+  Job name  : maskrcnn_debug
+  Job ID    : 23440528
+  Nodes     : idun-07-07
+Downloading: "https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth" to /cluster/home/eliasls/.cache/torch/hub/checkpoints/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth
