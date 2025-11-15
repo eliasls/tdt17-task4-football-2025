@@ -36,8 +36,6 @@ def get_missing_labels(images, labels_dir):
           missing_labels.append(stem)
   return missing_labels
 
-  return missing_labels
-
 def generate_paths(root_dir, match_names):
     all_paths = {}
 
