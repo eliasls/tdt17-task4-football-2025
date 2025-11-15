@@ -6,3 +6,5 @@ __pycache__/
 outputs/
 *.mp4
 .vscode
+/data-mask-r-cnn/
+data-mask-r-cnn/
