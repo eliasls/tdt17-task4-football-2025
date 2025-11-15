@@ -1,10 +1,12 @@
 import argparse
 import json
+import math
 import time
 from collections import defaultdict
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
+import numpy as np
 import torch
 from PIL import Image
 from torch import nn
@@ -200,7 +202,7 @@ def train_one_epoch(
     return running_loss / max(len(data_loader), 1)
 
 
-def coco_evaluate(annotation_file: Path, predictions: List[Dict]) -> Dict[str, float]:
+def coco_evaluate(annotation_file: Path, predictions: List[Dict]):
     try:
         from pycocotools.coco import COCO
         from pycocotools.cocoeval import COCOeval
@@ -211,12 +213,10 @@ def coco_evaluate(annotation_file: Path, predictions: List[Dict]) -> Dict[str, f
         ) from exc
 
     coco_gt = COCO(str(annotation_file))
-    if not predictions:
-        return {"mAP_50_95": 0.0, "mAP_50": 0.0}
-
-    # pycocotools expects the dataset dict to contain an "info" field
-    # even if it is empty. Some custom COCO exports omit it, so we add one.
     coco_gt.dataset.setdefault("info", {})
+
+    if not predictions:
+        return {"mAP_50_95": 0.0, "mAP_50": 0.0}, None
 
     coco_dt = coco_gt.loadRes(predictions)
     coco_eval = COCOeval(coco_gt, coco_dt, iouType="bbox")
@@ -225,7 +225,7 @@ def coco_evaluate(annotation_file: Path, predictions: List[Dict]) -> Dict[str, f
     coco_eval.summarize()
 
     stats = coco_eval.stats
-    return {"mAP_50_95": float(stats[0]), "mAP_50": float(stats[1])}
+    return {"mAP_50_95": float(stats[0]), "mAP_50": float(stats[1])}, coco_eval
 
 
 def compute_precision_recall(
@@ -233,7 +233,7 @@ def compute_precision_recall(
     pred_records: List[Dict],
     num_classes: int,
     iou_threshold: float = 0.5,
-) -> Dict[str, float]:
+):
     gt_by_image = {item["image_id"]: item for item in gt_records}
     pred_by_image = {item["image_id"]: item for item in pred_records}
 
@@ -290,14 +290,34 @@ def compute_precision_recall(
                     false_positives[class_id] += 1
 
     epsilon = 1e-6
-    precision = float(
+    overall_precision = float(
         true_positives.sum().item()
         / max(true_positives.sum().item() + false_positives.sum().item(), epsilon)
     )
-    recall = float(
+    overall_recall = float(
         true_positives.sum().item() / max(total_gt.sum().item(), epsilon)
     )
-    return {"precision": precision, "recall": recall}
+
+    precision_den = true_positives + false_positives
+    recall_den = total_gt
+
+    per_class_precision = torch.full_like(true_positives, float("nan"))
+    per_class_recall = torch.full_like(true_positives, float("nan"))
+
+    valid_precision = precision_den > 0
+    per_class_precision[valid_precision] = (
+        true_positives[valid_precision] / precision_den[valid_precision]
+    )
+    valid_recall = recall_den > 0
+    per_class_recall[valid_recall] = (
+        true_positives[valid_recall] / recall_den[valid_recall]
+    )
+
+    return (
+        {"precision": overall_precision, "recall": overall_recall},
+        per_class_precision,
+        per_class_recall,
+    )
 
 
 def evaluate(
@@ -370,12 +390,74 @@ def evaluate(
                         }
                     )
 
-    metrics = compute_precision_recall(
+    pr_metrics, per_class_precision, per_class_recall = compute_precision_recall(
         gt_records, pred_records, dataset.num_classes
     )
-    coco_metrics = coco_evaluate(annotation_file, coco_predictions)
+    metrics = {}
+    metrics.update(pr_metrics)
+    coco_metrics, coco_eval_obj = coco_evaluate(annotation_file, coco_predictions)
     metrics.update(coco_metrics)
+
+    contig_to_name = {
+        idx + 1: cat.get("name", f"class_{idx + 1}")
+        for idx, cat in enumerate(dataset.categories)
+    }
+
+    def tensor_to_dict(tensor):
+        result = {}
+        for contig_id in range(1, tensor.shape[0]):
+            name = contig_to_name.get(contig_id, str(contig_id))
+            val = tensor[contig_id].item()
+            if math.isnan(val):
+                result[name] = None
+            else:
+                result[name] = float(val)
+        return result
+
+    metrics["per_class_precision"] = tensor_to_dict(per_class_precision)
+    metrics["per_class_recall"] = tensor_to_dict(per_class_recall)
+
+    per_class_ap = compute_per_class_ap(coco_eval_obj, dataset)
+    per_class_ap50 = compute_per_class_ap(coco_eval_obj, dataset, iou_threshold=0.5)
+    if per_class_ap:
+        metrics["per_class_ap"] = per_class_ap
+    if per_class_ap50:
+        metrics["per_class_ap_50"] = per_class_ap50
+
     return metrics
+
+
+def compute_per_class_ap(
+    coco_eval, dataset: FootballCocoDataset, iou_threshold: Optional[float] = None
+) -> Dict[str, Optional[float]]:
+    if coco_eval is None or coco_eval.eval is None:
+        return {}
+
+    precision = coco_eval.eval.get("precision")
+    if precision is None or not precision.size:
+        return {}
+
+    if iou_threshold is not None:
+        iou_thrs = coco_eval.params.iouThrs
+        idx = np.where(np.isclose(iou_thrs, iou_threshold))[0]
+        if idx.size == 0:
+            return {}
+        precision = precision[idx[0] : idx[0] + 1, ...]
+
+    cat_ids = coco_eval.params.catIds
+    cat_id_to_name = {
+        cat["id"]: cat.get("name", str(cat["id"])) for cat in dataset.categories
+    }
+    per_class: Dict[str, Optional[float]] = {}
+    for idx, cat_id in enumerate(cat_ids):
+        cat_precision = precision[:, :, idx, 0, -1]
+        cat_precision = cat_precision[cat_precision > -1]
+        name = cat_id_to_name.get(cat_id, str(cat_id))
+        if cat_precision.size == 0:
+            per_class[name] = None
+        else:
+            per_class[name] = float(cat_precision.mean())
+    return per_class
 
 
 def save_checkpoint(model: nn.Module, optimizer, epoch: int, path: Path) -> None:
@@ -411,6 +493,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--score-threshold", type=float, default=0.05)
     parser.add_argument("--no-pretrained", action="store_true")
+    parser.add_argument(
+        "--early-stop-patience",
+        type=int,
+        default=0,
+        help="Stop training if val mAP@0.5:0.95 doesn't improve for this many epochs (0 disables)",
+    )
     parser.add_argument("--resume", type=Path, help="Checkpoint to resume training")
     parser.add_argument("--eval-checkpoint", type=Path, help="Checkpoint for evaluation-only mode")
     return parser.parse_args()
@@ -470,6 +558,7 @@ def main() -> None:
             print(f"Resumed from epoch {start_epoch}")
 
         best_map = 0.0
+        patience_counter = 0
         args.output_dir.mkdir(parents=True, exist_ok=True)
         metrics_path = args.output_dir / "metrics.jsonl"
 
@@ -503,11 +592,39 @@ def main() -> None:
                 f"Recall={metrics['recall']:.4f}"
             )
 
+            if "per_class_ap" in metrics:
+                print("Per-class AP (IoU=0.50:0.95):")
+                for cls_name, ap in metrics["per_class_ap"].items():
+                    ap_str = f"{ap:.4f}" if (ap is not None and ap == ap) else "n/a"
+                    print(f"  - {cls_name}: {ap_str}")
+            if "per_class_ap_50" in metrics:
+                print("Per-class AP (IoU=0.50):")
+                for cls_name, ap in metrics["per_class_ap_50"].items():
+                    ap_str = f"{ap:.4f}" if (ap is not None and ap == ap) else "n/a"
+                    print(f"  - {cls_name}: {ap_str}")
+            if "per_class_precision" in metrics and "per_class_recall" in metrics:
+                print("Per-class precision/recall (IoU=0.50):")
+                for cls_name in metrics["per_class_precision"].keys():
+                    prec = metrics["per_class_precision"][cls_name]
+                    rec = metrics["per_class_recall"][cls_name]
+                    prec_str = f"{prec:.4f}" if (prec is not None and prec == prec) else "n/a"
+                    rec_str = f"{rec:.4f}" if (rec is not None and rec == rec) else "n/a"
+                    print(f"  - {cls_name}: P={prec_str}, R={rec_str}")
+
             if metrics["mAP_50_95"] > best_map:
                 best_map = metrics["mAP_50_95"]
                 ckpt_path = args.output_dir / "best_model.pth"
                 save_checkpoint(model, optimizer, epoch, ckpt_path)
                 print(f"Saved new best checkpoint to {ckpt_path}")
+                patience_counter = 0
+            else:
+                if args.early_stop_patience > 0:
+                    patience_counter += 1
+                    if patience_counter >= args.early_stop_patience:
+                        print(
+                            f"Early stopping: no val improvement for {args.early_stop_patience} epochs."
+                        )
+                        break
 
     else:  # Evaluation-only mode
         if args.eval_ann is None:
@@ -546,6 +663,25 @@ def main() -> None:
             f"Precision={metrics['precision']:.4f}, "
             f"Recall={metrics['recall']:.4f}"
         )
+
+        if "per_class_ap" in metrics:
+            print("Per-class AP (IoU=0.50:0.95):")
+            for cls_name, ap in metrics["per_class_ap"].items():
+                ap_str = f"{ap:.4f}" if (ap is not None and ap == ap) else "n/a"
+                print(f"  - {cls_name}: {ap_str}")
+        if "per_class_ap_50" in metrics:
+            print("Per-class AP (IoU=0.50):")
+            for cls_name, ap in metrics["per_class_ap_50"].items():
+                ap_str = f"{ap:.4f}" if (ap is not None and ap == ap) else "n/a"
+                print(f"  - {cls_name}: {ap_str}")
+        if "per_class_precision" in metrics and "per_class_recall" in metrics:
+            print("Per-class precision/recall (IoU=0.50):")
+            for cls_name in metrics["per_class_precision"].keys():
+                prec = metrics["per_class_precision"][cls_name]
+                rec = metrics["per_class_recall"][cls_name]
+                prec_str = f"{prec:.4f}" if (prec is not None and prec == prec) else "n/a"
+                rec_str = f"{rec:.4f}" if (rec is not None and rec == rec) else "n/a"
+                print(f"  - {cls_name}: P={prec_str}, R={rec_str}")
 
 
 if __name__ == "__main__":

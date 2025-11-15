@@ -5,11 +5,12 @@
 
 #SBATCH --partition=GPUQ
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=4
-#SBATCH --mem=32G
+#SBATCH --constraint=v100|a100
+#SBATCH --cpus-per-task=16
+#SBATCH --mem=64G
 #SBATCH --nodes=1
-#SBATCH --output=output.txt      
-#SBATCH --error=output.err
+#SBATCH --output=logs/debug/%j.out
+#SBATCH --error=logs/debug/%j.err
 #SBATCH --mail-user=eliasls@stud.ntnu.no
 #SBATCH --mail-type=END,FAIL
 
@@ -36,4 +37,5 @@ python mask_r_cnn.py \
     --batch-size 1 \
     --num-workers 4 \
     --lr 0.001 \
+    --early-stop-patience 7 \
     --device cuda

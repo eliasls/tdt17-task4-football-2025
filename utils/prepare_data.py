@@ -28,18 +28,41 @@ CATEGORIES = [
 def parse_cvat_boxes(xml_path):
     root = ET.parse(xml_path).getroot()
     for track in root.findall("track"):
-        label = track.get("label")
-        for box in track.findall("box"):
-            if box.get("outside") == "1":
-                continue
-            frame = int(box.get("frame"))
-            xtl, ytl = float(box.get("xtl")), float(box.get("ytl"))
-            xbr, ybr = float(box.get("xbr")), float(box.get("ybr"))
-            yield {
-                "frame": frame,
-                "bbox": [xtl, ytl, xbr, ybr],
-                "class": label,
-            }
+        if track.get("label") == "ball" or track.get("label") == "event_labels" or track.get("label") == "event":
+            label = track.get("label")
+            #print(label)
+            for box in track.findall("box"):
+                if box.get("outside") == "1":
+                    continue
+                frame = int(box.get("frame"))
+                xtl, ytl = float(box.get("xtl")), float(box.get("ytl"))
+                xbr, ybr = float(box.get("xbr")), float(box.get("ybr"))
+                yield {
+                    "frame": frame,
+                    "bbox": [xtl, ytl, xbr, ybr],
+                    "class": label,
+                }
+        else:
+            boxes = track.findall("box")
+            for box in boxes:
+                if box.get("outside") == "1":
+                    continue
+                team_attr = box.find("./attribute[@name='team']")
+                team_value = team_attr.text.strip() if team_attr is not None and team_attr.text else None
+                if team_value == None:
+                    print("team_value is None")
+                if team_value == "referee":
+                    label = "referee"
+                else:
+                    label = "player"
+                frame = int(box.get("frame"))
+                xtl, ytl = float(box.get("xtl")), float(box.get("ytl"))
+                xbr, ybr = float(box.get("xbr")), float(box.get("ybr"))
+                yield {
+                    "frame": frame,
+                    "bbox": [xtl, ytl, xbr, ybr],
+                    "class": label,
+                }
 
 def build_split(split_name, matches, paths, image_root, out_json):
     images, annotations = [], []
@@ -51,7 +74,8 @@ def build_split(split_name, matches, paths, image_root, out_json):
         match_img_dir = Path(image_root, split_name, match)
         xml_path = Path(paths[match]["annotations"])
         for img_file in sorted(match_img_dir.glob("*.png")):
-            frame_idx = int(img_file.stem.split("_")[-1])  # frame_000123.png -> 123
+            # frame_000123.png -> 123
+            frame_idx = int(img_file.stem.split("_")[-1])  
             with Image.open(img_file) as im:
                 width, height = im.size
             images.append({

@@ -7,3 +7,7 @@ outputs/
 *.mp4
 .vscode
 data-mask-r-cnn
+logs
+.txt
+output.err
+runs

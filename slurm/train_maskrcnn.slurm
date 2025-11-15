@@ -1,15 +1,17 @@
 #!/bin/sh
-#SBATCH --account=<account>
+#SBATCH --account=ie-idi
 #SBATCH --job-name=maskrcnn_train
+#SBATCH --time=0-05:00:00
+
 #SBATCH --partition=GPUQ
 #SBATCH --gres=gpu:1
-#SBATCH --cpus-per-task=8
+#SBATCH --constraint=v100|a100
+#SBATCH --cpus-per-task=16
 #SBATCH --mem=64G
-#SBATCH --time=1-00:00:00
 #SBATCH --nodes=1
-#SBATCH --output=logs/train_%j.out
-#SBATCH --error=logs/train_%j.err
-#SBATCH --mail-user=<email>
+#SBATCH --output=logs/train/%j.out
+#SBATCH --error=logs/train/%j.err
+#SBATCH --mail-user=eliasls@stud.ntnu.no
 #SBATCH --mail-type=END,FAIL
 
 WORKDIR=${SLURM_SUBMIT_DIR}
@@ -34,4 +36,5 @@ python mask_r_cnn.py \
     --epochs 50 \
     --batch-size 2 \
     --num-workers 8 \
+    --early-stop-patience 7 \
     --device cuda
