@@ -8,3 +8,5 @@ outputs/
 .vscode
 /data-mask-r-cnn/
 data-mask-r-cnn/
+football_dataset/
+model_comparison/

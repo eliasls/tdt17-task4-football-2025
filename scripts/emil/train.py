@@ -14,16 +14,16 @@ def main():
 
     # Model and data
     parser.add_argument('--model', type=str, default='yolo11n.pt', help='Model to train (e.g., yolo11n.pt, yolo11s.pt)')
-    parser.add_argument('--data', type=str, default='football_dataset_complete/data.yaml', help='Path to data.yaml')
+    parser.add_argument('--data', type=str, default='football_dataset/data.yaml', help='Path to data.yaml')
 
     # Training parameters
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size (must be multiple of 32)')
-    parser.add_argument('--batch', type=int, default=8, help='Batch size')
+    parser.add_argument('--batch', type=int, default=16, help='Batch size')
     parser.add_argument('--device', type=int, default=0, help='GPU device (0, 1, etc.) or cpu')
 
     # Output
-    parser.add_argument('--project', type=str, default='runs/train', help='Project directory')
+    parser.add_argument('--project', type=str, default='runs/train/emil/new_data', help='Project directory')
     parser.add_argument('--name', type=str, default='exp', help='Experiment name')
 
     # Advanced options
