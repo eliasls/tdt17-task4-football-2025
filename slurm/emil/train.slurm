@@ -8,8 +8,8 @@
 #SBATCH --mem=64G
 #SBATCH --cpus-per-task=16
 #SBATCH --job-name=yolo_train
-#SBATCH --output=logs/train_%j.out
-#SBATCH --error=logs/train_%j.err
+#SBATCH --output=logs/emil/train_%j.out
+#SBATCH --error=logs/emil/train_%j.err
 
 # ============================================================
 # YOLO Training Job - Simple and Reusable
@@ -36,8 +36,8 @@
 WORKSPACE=/cluster/work/emilkl/tdt17-task4-football-2025
 
 # Training configuration - EDIT THESE
-MODEL="yolo11s.pt"
-TRAIN_ARGS="--epochs 50 --imgsz 1280 --batch 8 --name yolo11s_1280"
+MODEL="yolo11n.pt"
+TRAIN_ARGS="--epochs 50 --imgsz 1920 --batch 8 --name yolo11n_1920"
 
 # ============================================================
 
@@ -59,7 +59,7 @@ echo "Model: $MODEL"
 echo "Arguments: $TRAIN_ARGS"
 echo "=========================================="
 
-python scripts/train.py --model "$MODEL" $TRAIN_ARGS
+python scripts/emil/train.py --model "$MODEL" $TRAIN_ARGS
 
 EXIT_CODE=$?
 

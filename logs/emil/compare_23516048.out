@@ -1,0 +1,90 @@
+==========================================
+Job ID: 23516048
+Node: idun-07-03
+Start: Sun 16 Nov 08:49:20 CET 2025
+==========================================
+
+GPU Info:
+Sun Nov 16 08:49:20 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 575.57.08              Driver Version: 575.57.08      CUDA Version: 12.9     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  Tesla V100-PCIE-32GB           On  |   00000000:13:00.0 Off |                    0 |
+| N/A   24C    P0             22W /  250W |       0MiB /  32768MiB |      0%      Default |
+|                                         |                        |                  N/A |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+==========================================
+Starting Model Comparison
+Model 1: YOLO11n-640 (runs/train/emil/new_data/yolo11n_640/weights/best.pt)
+Model 2: YOLO11n-1920 (runs/train/emil/new_data/yolo11n_1920/weights/best.pt)
+==========================================
+================================================================================
+MODEL COMPARISON
+================================================================================
+Model 1:    runs/train/emil/new_data/yolo11n_640/weights/best.pt (YOLO11n-640)
+Model 2:    runs/train/emil/new_data/yolo11n_1920/weights/best.pt (YOLO11n-1920)
+Data:       football_dataset/data.yaml
+Split:      val
+Output:     model_comparison/640v1920
+================================================================================
+
+Loading models...
+✓ Loaded YOLO11n-640
+✓ Loaded YOLO11n-1920
+
+Found 1523 val images
+
+Running YOLO11n-640 predictions...
+Running YOLO11n-1920 predictions...
+
+================================================================================
+METRICS COMPARISON
+================================================================================
+       Model  Avg Precision  Avg Recall   Avg F1  Total TP  Total FP  Total FN
+ YOLO11n-640       0.926489    0.924599 0.923324     32506      2797      2671
+YOLO11n-1920       0.972033    0.962235 0.966414     33840      1042      1337
+
+✓ Metrics saved to: model_comparison/640v1920/metrics_comparison.csv
+
+================================================================================
+GENERATING VISUALIZATIONS
+================================================================================
+
+Creating 20 comparison visualizations...
+✓ Visualizations saved to: model_comparison/640v1920/visualizations
+
+Generating comparison plots...
+✓ Comparison plots saved to: model_comparison/640v1920/comparison_plots.png
+
+================================================================================
+COMPARISON COMPLETE!
+================================================================================
+Winner (by F1): YOLO11n-1920
+F1 Difference:  0.0431
+
+Output directory: model_comparison/640v1920
+  - Metrics:        model_comparison/640v1920/metrics_comparison.csv
+  - Visualizations: model_comparison/640v1920/visualizations
+  - Plots:          model_comparison/640v1920/comparison_plots.png
+  - Summary:        model_comparison/640v1920/comparison_summary.json
+================================================================================
+
+==========================================
+End: Sun 16 Nov 08:55:01 CET 2025
+Exit code: 0
+==========================================
+✓ SUCCESS!
+Results saved to: model_comparison/640v1920
