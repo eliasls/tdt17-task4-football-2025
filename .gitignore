@@ -9,6 +9,7 @@ outputs/
 /data-mask-r-cnn/
 data-mask-r-cnn/
 football_dataset/
+football_dataset_coco/
 model_comparison/
 datasets/
 data-faster-r-cnn/
