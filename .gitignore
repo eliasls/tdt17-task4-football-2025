@@ -11,12 +11,10 @@ data-mask-r-cnn/
 football_dataset/
 football_dataset_coco/
 model_comparison/
-
-# Model checkpoints and weights
-*.pth
-*.pt
+datasets/
+data-faster-r-cnn/
+data-new/
+data-old/
+logs/elias/inference/full
+logs/elias/train/full
 runs/
-track_output/
-
-# RF-DETR outputs
-rf-detr-medium.pth
