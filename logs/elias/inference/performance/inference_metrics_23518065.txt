@@ -1,0 +1,28 @@
+============================================================
+TEST METRICS (Best Model)
+============================================================
+mAP50-95:  0.6548
+mAP50:     0.8291
+mAP75:     0.7438
+Precision: 0.9725
+Recall:    0.7942
+
+Per-class Precision:
+  player          0.9936
+  ball            0.9514
+
+Per-class Recall:
+  player          0.9871
+  ball            0.6012
+
+Per-class mAP50:
+  player          0.9944
+  ball            0.6637
+
+Per-class mAP50-95:
+  player          0.8778
+  ball            0.4318
+============================================================
+
+Weights used: runs/train/elias/yolo11s_1920_rect_e150/weights/best.pt
+============================================================

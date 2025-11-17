@@ -10,3 +10,10 @@ outputs/
 data-mask-r-cnn/
 football_dataset/
 model_comparison/
+datasets/
+data-faster-r-cnn/
+data-new/
+data-old/
+logs/elias/inference/full
+logs/elias/train/full
+runs/
