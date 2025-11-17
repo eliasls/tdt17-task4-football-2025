@@ -9,4 +9,14 @@ outputs/
 /data-mask-r-cnn/
 data-mask-r-cnn/
 football_dataset/
+football_dataset_coco/
 model_comparison/
+
+# Model checkpoints and weights
+*.pth
+*.pt
+runs/
+track_output/
+
+# RF-DETR outputs
+rf-detr-medium.pth
