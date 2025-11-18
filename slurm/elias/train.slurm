@@ -11,38 +11,11 @@
 #SBATCH --output=logs/elias/train_%j.out
 #SBATCH --error=logs/elias/train_%j.err
 
-# ============================================================
-# YOLO Training Job - Simple and Reusable
-# ============================================================
-#
-# To customize training, edit the MODEL and TRAIN_ARGS below:
-#
-# MODEL examples:
-#   - yolo11n.pt (nano, fastest)
-#   - yolo11s.pt (small)
-#   - yolo11m.pt (medium)
-#   - yolo11l.pt (large)
-#
-# Common arguments:
-#   --epochs 50         Number of training epochs
-#   --imgsz 1280        Image size (640, 1280, etc.)
-#   --batch 16          Batch size (adjust for GPU memory)
-#   --name exp_name     Experiment name
-#   --patience 10       Early stopping patience
-#   --cache             Cache images in RAM for faster training
-#
-# ============================================================
 
 WORKSPACE=/cluster/work/eliasls/tdt17/task4
 
-# Training configuration - EDIT THESE
 MODEL="yolo11s.pt"
 TRAIN_ARGS="--data datasets/data.yaml --epochs 150 --imgsz 1920 --batch 4 --rect --scale 0.2 --patience 50 --workers 8 --name yolo11s_1920_rect_e150"
-
-
-
-
-# ============================================================
 
 echo "=========================================="
 echo "Job ID: $SLURM_JOB_ID"

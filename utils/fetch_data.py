@@ -14,8 +14,6 @@ def copy_file(src_path, dst_path):
   shutil.copy2(src, dst)
 
 def generate_dst_with_correct_name_img(dst_path, new_filename, old_filename, filetype):
-  #frame_000002.txt
-  #RBK_VIKING_frame_
   punc_split = old_filename.split(".")
   under_score_split = punc_split[0].split("_")
   
@@ -25,8 +23,6 @@ def generate_dst_with_correct_name_img(dst_path, new_filename, old_filename, fil
   return dst_path_with_correct_name
 
 def generate_dst_with_correct_name_txt(dst_path, new_filename, old_filename, filetype):
-  #frame_000002.png
-  #RBK_VIKING_frame_
   old = old_filename.split("_")[1]
   dst_path_with_correct_name = dst_path + "/" + new_filename + old 
   return dst_path_with_correct_name
@@ -79,12 +75,9 @@ def has_class(label_path: Path, class_id: int = 2):
                     continue
                 cls = int(float(parts[0]))
                 if cls == class_id:
-                    #print(label_path)
                     count += 1
-                    #return True
             if count > 0:
                 print(label_path)
-                #print(lines_read)
             return count
     except FileNotFoundError:
         return 0
@@ -92,9 +85,6 @@ def has_class(label_path: Path, class_id: int = 2):
 
 
 def remove_class_from_labels(label_dir: Path, class_id: int = 2) -> None:
-    """
-    Remove lines starting with class_id from all .txt label files under label_dir.
-    """
     for path in Path(label_dir).glob("*.txt"):
         try:
             lines = path.read_text().splitlines()
@@ -104,10 +94,10 @@ def remove_class_from_labels(label_dir: Path, class_id: int = 2) -> None:
         for line in lines:
             parts = line.strip().split()
             if len(parts) != 5:
-                continue  # skip malformed
+                continue  
             cls = int(float(parts[0]))
             if cls == class_id:
-                continue  # drop this annotation
+                continue  
             kept.append(line)
         if len(kept) != len(lines):
             path.write_text("\n".join(kept) + ("\n" if kept else ""))

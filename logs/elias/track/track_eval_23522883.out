@@ -1,0 +1,156 @@
+==========================================
+Job ID: 23522883
+Node:   idun-06-01
+Start:  Mon 17 Nov 16:14:14 CET 2025
+==========================================
+
+GPU Info:
+Mon Nov 17 16:14:14 2025       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 575.57.08              Driver Version: 575.57.08      CUDA Version: 12.9     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-80GB          On  |   00000000:01:00.0 Off |                    0 |
+| N/A   41C    P0             63W /  500W |       0MiB /  81920MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+
+=== RUNNING TRACKING ===
+Video:   /cluster/projects/vc/courses/TDT17/other/Football2025/RBK-AALESUND/aalesund.mp4
+Model:   /cluster/work/eliasls/tdt17/task4/models/yolo11s_1920_rect_e150_best.pt
+Tracker: /cluster/work/eliasls/tdt17/task4/configs/botsort.yaml
+json out: runs/track/elias/json/RBK-AALESUND.json
+MOT out: /cluster/work/eliasls/tdt17/task4/TrackEval/data/trackers/mot_challenge/FOOTBALL-test/yolo_botsort/data/RBK-AALESUND.txt
+================================================================================
+FOOTBALL TRACKING (Ultralytics + BoT-SORT)
+================================================================================
+Input video:  /cluster/projects/vc/courses/TDT17/other/Football2025/RBK-AALESUND/aalesund.mp4
+Model:        /cluster/work/eliasls/tdt17/task4/models/yolo11s_1920_rect_e150_best.pt
+Tracker cfg:  /cluster/work/eliasls/tdt17/task4/configs/botsort.yaml
+Project:      runs/track/elias
+Name:         RBK-AALESUND
+================================================================================
+
+Processing video and collecting tracks...
+Results saved to [1m/cluster/work/eliasls/tdt17/task4/runs/track/elias/RBK-AALESUND4[0m
+
+Total frames processed: 1802
+Total predictions:      40644
+Predictions (JSON) saved to: runs/track/elias/json/RBK-AALESUND.json
+Predictions in MOT format saved to: /cluster/work/eliasls/tdt17/task4/TrackEval/data/trackers/mot_challenge/FOOTBALL-test/yolo_botsort/data/RBK-AALESUND.txt
+
+Tracking complete.
+================================================================================
+Annotated video is in: runs/track/elias/RBK-AALESUND
+================================================================================
+Tracking exit code: 0
+
+=== RUNNING TRACKEVAL (HOTA) ===
+Error importing BURST due to missing underlying dependency: No module named 'tabulate'
+
+Eval Config:
+USE_PARALLEL         : False                         
+NUM_PARALLEL_CORES   : 8                             
+BREAK_ON_ERROR       : True                          
+RETURN_ON_ERROR      : False                         
+LOG_ON_ERROR         : /cluster/work/eliasls/tdt17/task4/TrackEval/error_log.txt
+PRINT_RESULTS        : True                          
+PRINT_ONLY_COMBINED  : False                         
+PRINT_CONFIG         : True                          
+TIME_PROGRESS        : True                          
+DISPLAY_LESS_PROGRESS : False                         
+OUTPUT_SUMMARY       : True                          
+OUTPUT_EMPTY_CLASSES : True                          
+OUTPUT_DETAILED      : True                          
+PLOT_CURVES          : True                          
+
+MotChallenge2DBox Config:
+PRINT_CONFIG         : True                          
+GT_FOLDER            : /cluster/work/eliasls/tdt17/task4/TrackEval/data/gt/mot_challenge/
+TRACKERS_FOLDER      : /cluster/work/eliasls/tdt17/task4/TrackEval/data/trackers/mot_challenge/
+OUTPUT_FOLDER        : None                          
+TRACKERS_TO_EVAL     : ['yolo_botsort']              
+CLASSES_TO_EVAL      : ['pedestrian']                
+BENCHMARK            : FOOTBALL                      
+SPLIT_TO_EVAL        : test                          
+INPUT_AS_ZIP         : False                         
+DO_PREPROC           : False                         
+TRACKER_SUB_FOLDER   : data                          
+OUTPUT_SUB_FOLDER    :                               
+TRACKER_DISPLAY_NAMES : None                          
+SEQMAP_FOLDER        : None                          
+SEQMAP_FILE          : None                          
+SEQ_INFO             : None                          
+GT_LOC_FORMAT        : {gt_folder}/{seq}/gt/gt.txt   
+SKIP_SPLIT_FOL       : False                         
+============================================================
+/cluster/work/eliasls/tdt17/task4/TrackEval/data/gt/mot_challenge/FOOTBALL-test
+/cluster/work/eliasls/tdt17/task4/TrackEval/data/gt/mot_challenge/FOOTBALL-test/RBK-AALESUND/seqinfo.ini
+============================================================
+
+CLEAR Config:
+METRICS              : ['HOTA', 'CLEAR', 'Identity'] 
+THRESHOLD            : 0.5                           
+PRINT_CONFIG         : True                          
+
+Identity Config:
+METRICS              : ['HOTA', 'CLEAR', 'Identity'] 
+THRESHOLD            : 0.5                           
+PRINT_CONFIG         : True                          
+
+Evaluating 1 tracker(s) on 1 sequence(s) for 1 class(es) on MotChallenge2DBox dataset using the following metrics: HOTA, CLEAR, Identity, Count
+
+
+Evaluating yolo_botsort
+
+    MotChallenge2DBox.get_raw_seq_data(yolo_botsort, RBK-AALESUND)         0.3141 sec
+    MotChallenge2DBox.get_preprocessed_seq_data(pedestrian)                0.2164 sec
+    HOTA.eval_sequence()                                                   0.4118 sec
+    CLEAR.eval_sequence()                                                  0.0634 sec
+    Identity.eval_sequence()                                               0.0164 sec
+    Count.eval_sequence()                                                  0.0000 sec
+1 eval_sequence(RBK-AALESUND, yolo_botsort)                              1.0279 sec
+
+All sequences for yolo_botsort finished in 1.03 seconds
+
+HOTA: yolo_botsort-pedestrian      HOTA      DetA      AssA      DetRe     DetPr     AssRe     AssPr     LocA      OWTA      HOTA(0)   LocA(0)   HOTALocA(0)
+RBK-AALESUND                       79.465    86.699    72.997    89.595    93.008    76.032    89.248    91.84     80.864    86.087    90.915    78.266    
+COMBINED                           79.465    86.699    72.997    89.595    93.008    76.032    89.248    91.84     80.864    86.087    90.915    78.266    
+
+CLEAR: yolo_botsort-pedestrian     MOTA      MOTP      MODA      CLR_Re    CLR_Pr    MTR       PTR       MLR       sMOTA     CLR_TP    CLR_FN    CLR_FP    IDSW      MT        PT        ML        Frag      
+RBK-AALESUND                       95.594    91.02     95.724    96.028    99.685    96        4         0         86.97     40516     1676      128       55        24        1         0         120       
+COMBINED                           95.594    91.02     95.724    96.028    99.685    96        4         0         86.97     40516     1676      128       55        24        1         0         120       
+
+Identity: yolo_botsort-pedestrian  IDF1      IDR       IDP       IDTP      IDFN      IDFP      
+RBK-AALESUND                       81.047    79.56     82.59     33568     8624      7076      
+COMBINED                           81.047    79.56     82.59     33568     8624      7076      
+
+Count: yolo_botsort-pedestrian     Dets      GT_Dets   IDs       GT_IDs    
+RBK-AALESUND                       40644     42192     71        25        
+COMBINED                           40644     42192     71        25        
+
+Timing analysis:
+MotChallenge2DBox.get_raw_seq_data                                     0.3141 sec
+MotChallenge2DBox.get_preprocessed_seq_data                            0.2164 sec
+HOTA.eval_sequence                                                     0.4118 sec
+CLEAR.eval_sequence                                                    0.0634 sec
+Identity.eval_sequence                                                 0.0164 sec
+Count.eval_sequence                                                    0.0000 sec
+eval_sequence                                                          1.0279 sec
+Evaluator.evaluate                                                     2.2020 sec
+TrackEval exit code: 0
+
+=== DONE ===
+End: Mon 17 Nov 16:16:42 CET 2025
+==========================================

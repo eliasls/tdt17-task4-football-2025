@@ -5,7 +5,6 @@ import xml.etree.ElementTree as ET
 
 
 def print_lines_in_file(file_path, number_of_lines):
-  print("hade")
   with open(file_path, "r") as f:
     lines = f.readlines()
 
@@ -23,7 +22,7 @@ def check_corrupts_and_artifacts(images, img_dir):
         continue
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     mean_val = gray.mean()
-    if mean_val < 5:   # super dark
+    if mean_val < 5:   
         black_ish_images.append(name)
   return bad_files, black_ish_images
 
@@ -62,7 +61,6 @@ def generate_paths(root_dir, match_names):
                 }
 
         else:
-            # normal matches
             all_paths[match] = {
                 "images": os.path.join(match_path, "data", "images", "train"),
                 "labels": os.path.join(match_path, "labels", "train"),
@@ -101,13 +99,11 @@ def check_original_sizes(paths_dict, expected_width=1920, expected_height=1080):
             results[name] = entry
             continue
 
-        # try 1) /meta/task/original_size
         orig = None
         task_el = meta_el.find("task")
         if task_el is not None:
             orig = task_el.find("original_size")
 
-        # if not found, try 2) /meta/original_size (your RBK-BODO-PART1/2 case)
         if orig is None:
             orig = meta_el.find("original_size")
 
@@ -202,9 +198,55 @@ def collect_bbox_areas(xml_path):
 
     return rel_areas, abs_areas
 
+def collect_bbox_areas2(xml_path):
+    w, h, _ = load_cvat_metadata(xml_path)
+    """ print(xml_path)
+    print(f"w:{w}")
+    print(f"h:{h}") """
+    if w is None or h is None:
+        raise ValueError(f"Could not find original_size in {xml_path}")
+
+    tree = ET.parse(xml_path)
+    root = tree.getroot()
+    tracks = root.findall("track")
+    
+
+    rel_areas_ball = []   
+    abs_areas_ball = []
+    rel_areas_player = []   
+    abs_areas_player = []
+    width = []   
+    heigth = []   
+
+    for track in root.findall("track"):
+        if track.get("label") == "event_labels" or track.get("label") == "event":
+            continue
+        for box in track.findall("box"):
+            xtl = float(box.get("xtl"))
+            ytl = float(box.get("ytl"))
+            xbr = float(box.get("xbr"))
+            ybr = float(box.get("ybr"))
+          
+            bw = xbr - xtl  
+            bh = ybr - ytl  
+            
+            abs_area = bw * bh                    
+            rel_area = abs_area / (w * h)         
+            if track.get("label") == "ball":
+                abs_areas_ball.append(abs_area)
+                rel_areas_ball.append(rel_area)
+                width.append(bw)
+                heigth.append(bh)
+            else:
+                abs_areas_player.append(abs_area)
+                rel_areas_player.append(rel_area)
+
+    return rel_areas_ball, abs_areas_ball, rel_areas_player, abs_areas_player, width, heigth
+
+
+
 def load_cvat_track(xml_path):
     
-    print(xml_path)
     tree = ET.parse(xml_path)
     root = tree.getroot()
     tracks = root.findall("track")
@@ -215,8 +257,6 @@ def load_cvat_track(xml_path):
     ball = 0
     event_labels = 0
     
-    #attri = tracks[0].find("box").find("./attribute[@name='team']")
-    #print(attri.text)
     
     for track in tracks:
         if track.get("label") == "ball":
@@ -228,7 +268,6 @@ def load_cvat_track(xml_path):
         else:
             boxes = track.findall("box")
             for box in boxes:
-                #print(track.get("label"))
                 if box.find("./attribute[@name='team']").text == "referee":
                     referee += 1
                 else: 
@@ -236,5 +275,4 @@ def load_cvat_track(xml_path):
     
     return player, referee, ball, event_labels
 
-#def collect_class_stats(xml_path):
     

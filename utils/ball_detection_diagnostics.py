@@ -1,8 +1,3 @@
-"""
-Helpers for inspecting YOLO labels and visualizing them on images, with an
-emphasis on checking ball annotations.
-"""
-
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 import random
@@ -14,7 +9,6 @@ import yaml
 
 
 def load_class_names(data_yaml: Path) -> Dict[int, str]:
-    """Load class names from a YOLO-style data.yaml file."""
     data = yaml.safe_load(Path(data_yaml).read_text())
     names = data.get("names", {})
     if isinstance(names, list):
@@ -23,7 +17,6 @@ def load_class_names(data_yaml: Path) -> Dict[int, str]:
 
 
 def load_labels(label_path: Path) -> pd.DataFrame:
-    """Read a YOLO label file into a DataFrame."""
     records: List[Dict[str, float]] = []
     with open(label_path, "r") as f:
         for line in f:
@@ -44,7 +37,6 @@ def load_labels(label_path: Path) -> pd.DataFrame:
 
 
 def yolo_to_xyxy(df: pd.DataFrame, img_shape: Tuple[int, int, int]) -> pd.DataFrame:
-    """Convert normalized YOLO boxes to pixel xyxy given image shape (H, W, C)."""
     h, w = img_shape[:2]
     out = df.copy()
     out["x1"] = (df["x_center"] - df["width"] / 2) * w
@@ -63,7 +55,6 @@ def plot_image_with_labels(
     ax: Optional[plt.Axes] = None,
     title: Optional[str] = None,
 ) -> plt.Axes:
-    """Overlay YOLO labels on an image."""
     img = cv2.imread(str(image_path))
     if img is None:
         raise FileNotFoundError(f"Could not read image at {image_path}")
@@ -73,7 +64,6 @@ def plot_image_with_labels(
     df_xyxy = yolo_to_xyxy(df, img_rgb.shape)
 
     if ax is None:
-        # Match figure size to the image's native resolution for a true-to-size view.
         h, w = img_rgb.shape[:2]
         dpi = 100
         fig_w, fig_h = w / dpi, h / dpi
@@ -102,7 +92,6 @@ def plot_image_with_labels(
 
 
 def _file_has_class(label_path: Path, class_id: int) -> bool:
-    """Return True if a YOLO label file contains at least one instance of class_id."""
     try:
         with open(label_path, "r") as f:
             for line in f:
@@ -118,13 +107,11 @@ def _file_has_class(label_path: Path, class_id: int) -> bool:
 
 
 def _resolve_image_path(label_path: Path, image_dir: Path) -> Optional[Path]:
-    """Find the corresponding image file for a label stem across common extensions."""
     exts = (".png", ".jpg", ".jpeg", ".bmp")
     for ext in exts:
         candidate = image_dir / (label_path.stem + ext)
         if candidate.exists():
             return candidate
-    # Fallback: any file with the same stem.
     for candidate in image_dir.glob(f"{label_path.stem}.*"):
         if candidate.is_file():
             return candidate
@@ -138,7 +125,6 @@ def sample_label_files(
     require_class: Optional[int] = None,
     prefix: Optional[str] = None,
 ) -> List[Path]:
-    """Sample n label files from a directory, optionally requiring a class to be present."""
     label_paths = list(Path(label_dir).glob("*.txt"))
     if prefix:
         label_paths = [p for p in label_paths if p.name.startswith(prefix)]
@@ -162,11 +148,6 @@ def show_samples(
     require_class: Optional[int] = None,
     prefix: Optional[str] = None,
 ) -> None:
-    """
-    Draw boxes for n random samples from the label_dir/image_dir pair.
-
-    Useful in a notebook for eyeballing ball annotations.
-    """
     samples = sample_label_files(
         label_dir, n=n, seed=seed, require_class=require_class, prefix=prefix
     )
@@ -180,9 +161,8 @@ def show_samples(
 
     cols = 1 if len(samples) <= 1 else 3
     rows = max(1, (len(samples) + cols - 1) // cols)
-    base_w, base_h = 12, 8  # Bigger per-image size for notebook viewing.
-
-    # If only one sample, size the figure to the native image resolution for max quality.
+    base_w, base_h = 12, 8 
+    
     if len(samples) == 1:
         label_path = samples[0]
         image_path = _resolve_image_path(label_path, image_dir)
@@ -239,7 +219,6 @@ def show_samples(
             title=label_path.stem,
         )
 
-    # Hide unused axes
     for ax in axes[len(samples) :]:
         ax.set_axis_off()
     plt.tight_layout()

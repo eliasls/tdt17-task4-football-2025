@@ -2,19 +2,18 @@
 #SBATCH --partition=GPUQ
 #SBATCH --account=ie-idi
 #SBATCH --gres=gpu:1
-#SBATCH --constraint="a100"
-#SBATCH --time=10:00:00
+#SBATCH --constraint="a100|v100"
+#SBATCH --time=01:00:00        
 #SBATCH --nodes=1
-#SBATCH --mem=64G
-#SBATCH --cpus-per-task=16
+#SBATCH --mem=16G              
+#SBATCH --cpus-per-task=8      
 #SBATCH --job-name=yolo_inference
-#SBATCH --output=logs/elias/train_%j.out
-#SBATCH --error=logs/elias/train_%j.err
+#SBATCH --output=logs/elias/inference_%j.out
+#SBATCH --error=logs/elias/inference_%j.err
 
 
 WORKSPACE=/cluster/work/eliasls/tdt17/task4
 
-# Inference configuration - EDIT THESE
 MODEL="runs/train/elias/yolo11s_1920_rect_e150/weights/best.pt"
 INFER_ARGS="--data datasets/data.yaml"
 
