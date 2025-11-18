@@ -1,0 +1,2 @@
+/cluster/work/eliasls/tdt17/task4/TrackEval/trackeval/__init__.py:12: FutureWarning: In the future `np.object` will be defined as the corresponding NumPy scalar.
+  if not hasattr(_np, "object"):
