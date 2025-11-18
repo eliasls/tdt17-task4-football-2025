@@ -17,6 +17,7 @@ data-new/
 data-old/
 logs/elias/inference/full
 logs/elias/train/full
+logs/
 runs/
 gt-tracking/
 TrackEval/

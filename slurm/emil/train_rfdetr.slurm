@@ -23,25 +23,18 @@ echo "GPU: $CUDA_VISIBLE_DEVICES"
 echo "=========================================="
 echo
 
-# Navigate to project directory
 cd /cluster/work/emilkl/tdt17-task4-football-2025 || exit 1
 
-# Activate virtual environment
-echo "Activating virtual environment..."
 source .venv/bin/activate
 
-# Verify environment
 echo "Python: $(which python)"
 echo "Python version: $(python --version)"
 echo
 
-# Check GPU
 echo "Checking GPU availability..."
 python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}'); print(f'GPU: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"None\"}')"
 echo
 
-# Configure distributed training environment for single GPU
-# These variables are required by RF-DETR even for single-GPU training
 echo "Configuring distributed training environment..."
 export MASTER_ADDR=localhost
 export MASTER_PORT=29500
@@ -54,13 +47,11 @@ echo "  WORLD_SIZE: $WORLD_SIZE"
 echo "  RANK: $RANK"
 echo
 
-# Optimize PyTorch CUDA memory allocation
 echo "Configuring PyTorch memory optimization..."
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 echo "  PYTORCH_CUDA_ALLOC_CONF: $PYTORCH_CUDA_ALLOC_CONF"
 echo
 
-# Run training
 echo "Starting RF-DETR training..."
 echo "=========================================="
 python scripts/emil/train_rfdetr.py \

@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-"""
-Simple and minimal YOLO training script for football dataset.
-Easy to customize via command-line arguments.
-"""
-
 import argparse
 from pathlib import Path
 import torch
@@ -12,28 +7,23 @@ from ultralytics import YOLO
 def main():
     parser = argparse.ArgumentParser(description='Train YOLO model on football dataset')
 
-    # Model and data
     parser.add_argument('--model', type=str, default='yolo11n.pt', help='Model to train (e.g., yolo11n.pt, yolo11s.pt)')
     parser.add_argument('--data', type=str, default='football_dataset/data.yaml', help='Path to data.yaml')
 
-    # Training parameters
     parser.add_argument('--epochs', type=int, default=50, help='Number of epochs')
     parser.add_argument('--imgsz', type=int, default=640, help='Image size (must be multiple of 32)')
     parser.add_argument('--batch', type=int, default=16, help='Batch size')
     parser.add_argument('--device', type=int, default=0, help='GPU device (0, 1, etc.) or cpu')
 
-    # Output
     parser.add_argument('--project', type=str, default='runs/train/emil/new_data', help='Project directory')
     parser.add_argument('--name', type=str, default='exp', help='Experiment name')
 
-    # Advanced options
     parser.add_argument('--patience', type=int, default=10, help='Early stopping patience')
     parser.add_argument('--workers', type=int, default=8, help='Number of workers')
     parser.add_argument('--cache', action='store_true', help='Cache images for faster training')
 
     args = parser.parse_args()
 
-    # Print configuration
     print("=" * 60)
     print("YOLO TRAINING")
     print("=" * 60)
@@ -47,12 +37,10 @@ def main():
     print(f"Name:       {args.name}")
     print("=" * 60)
 
-    # GPU info
     if torch.cuda.is_available():
         print(f"\nGPU: {torch.cuda.get_device_name(0)}")
         print(f"CUDA: {torch.version.cuda}")
 
-    # Load model and train
     print("\nLoading model...")
     model = YOLO(args.model)
 
@@ -74,7 +62,6 @@ def main():
         verbose=True,
     )
 
-    # Get save directory
     if hasattr(results, 'save_dir'):
         save_dir = Path(results.save_dir)
     elif hasattr(model, 'trainer') and hasattr(model.trainer, 'save_dir'):
@@ -87,7 +74,6 @@ def main():
     print("=" * 60)
     print(f"Results saved to: {save_dir}")
 
-    # Run final validation on best model
     best_weights = save_dir / "weights" / "best.pt"
     last_weights = save_dir / "weights" / "last.pt"
 
@@ -107,15 +93,13 @@ def main():
         print(f"Precision: {metrics.box.mp:.4f}")
         print(f"Recall:    {metrics.box.mr:.4f}")
 
-        # Per-class metrics
         if hasattr(metrics.box, 'maps') and len(metrics.box.maps) > 0:
             print("\nPer-class mAP50-95:")
-            class_names = ['player', 'ball', 'event_labels']  # Football dataset classes
+            class_names = ['player', 'ball', 'event_labels']  
             for i, name in enumerate(class_names):
                 if i < len(metrics.box.maps):
                     print(f"  {name:15} {metrics.box.maps[i]:.4f}")
 
-        # Per-class AP50
         if hasattr(metrics.box, 'ap50') and len(metrics.box.ap50) > 0:
             print("\nPer-class mAP50:")
             for i, name in enumerate(class_names):

@@ -11,35 +11,10 @@
 #SBATCH --output=logs/emil/train_%j.out
 #SBATCH --error=logs/emil/train_%j.err
 
-# ============================================================
-# YOLO Training Job - Simple and Reusable
-# ============================================================
-#
-# To customize training, edit the MODEL and TRAIN_ARGS below:
-#
-# MODEL examples:
-#   - yolo11n.pt (nano, fastest)
-#   - yolo11s.pt (small)
-#   - yolo11m.pt (medium)
-#   - yolo11l.pt (large)
-#
-# Common arguments:
-#   --epochs 50         Number of training epochs
-#   --imgsz 1280        Image size (640, 1280, etc.)
-#   --batch 16          Batch size (adjust for GPU memory)
-#   --name exp_name     Experiment name
-#   --patience 10       Early stopping patience
-#   --cache             Cache images in RAM for faster training
-#
-# ============================================================
-
 WORKSPACE=/cluster/work/emilkl/tdt17-task4-football-2025
 
-# Training configuration - EDIT THESE
 MODEL="yolo11n.pt"
 TRAIN_ARGS="--epochs 50 --imgsz 1920 --batch 8 --name yolo11n_1920"
-
-# ============================================================
 
 echo "=========================================="
 echo "Job ID: $SLURM_JOB_ID"

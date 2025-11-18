@@ -1,11 +1,4 @@
 #!/usr/bin/env python3
-"""
-Convert YOLO format dataset to COCO JSON format for RF-DETR training.
-
-This script converts the football dataset from YOLO format (normalized bbox coordinates)
-to COCO JSON format required by RF-DETR, while preserving image symlinks.
-"""
-
 import argparse
 import json
 import os
@@ -43,21 +36,11 @@ def convert_split(
     split_name: str,
     class_info: dict,
 ):
-    """Convert a single split (train/val/test) from YOLO to COCO format."""
-
-    print(f"\nConverting {split_name} split...")
-    print(f"  Images: {images_dir}")
-    print(f"  Labels: {labels_dir}")
-    print(f"  Output: {output_dir}")
-
-    # Create output directory
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Create symlink directory for images
     output_images_dir = output_dir / split_name
     output_images_dir.mkdir(parents=True, exist_ok=True)
 
-    # Initialize COCO structure
     coco_data = {
         "images": [],
         "annotations": [],
@@ -74,7 +57,6 @@ def convert_split(
     annotation_id = 1
     image_id = 1
 
-    # Get all image files
     image_files = sorted(images_dir.glob("*.png"))
 
     if not image_files:
@@ -83,12 +65,9 @@ def convert_split(
 
     print(f"  Found {len(image_files)} images")
 
-    # Process each image
     for img_path in tqdm(image_files, desc=f"  Processing {split_name}"):
-        # Get corresponding label file
         label_path = labels_dir / f"{img_path.stem}.txt"
 
-        # Get image dimensions
         try:
             with Image.open(img_path) as img:
                 img_width, img_height = img.size
@@ -96,18 +75,14 @@ def convert_split(
             print(f"  WARNING: Could not read image {img_path}: {e}")
             continue
 
-        # Create symlink to image (preserve symlinks, don't copy)
         symlink_path = output_images_dir / img_path.name
         if not symlink_path.exists():
-            # Check if source is already a symlink
             if img_path.is_symlink():
-                # Copy the symlink target, not the symlink itself
                 real_path = img_path.resolve()
                 os.symlink(real_path, symlink_path)
             else:
                 os.symlink(img_path.resolve(), symlink_path)
 
-        # Add image to COCO data
         image_data = {
             "id": image_id,
             "file_name": img_path.name,
@@ -116,7 +91,6 @@ def convert_split(
         }
         coco_data["images"].append(image_data)
 
-        # Read YOLO annotations if label file exists
         if label_path.exists():
             with open(label_path, "r") as f:
                 lines = f.readlines()
@@ -134,13 +108,10 @@ def convert_split(
                 class_id = int(parts[0])
                 yolo_bbox = [float(x) for x in parts[1:5]]
 
-                # Convert to COCO format
                 coco_bbox = convert_yolo_bbox_to_coco(yolo_bbox, img_width, img_height)
 
-                # Calculate area
                 area = coco_bbox[2] * coco_bbox[3]
 
-                # Add annotation
                 annotation = {
                     "id": annotation_id,
                     "image_id": image_id,
@@ -154,7 +125,6 @@ def convert_split(
 
         image_id += 1
 
-    # Save COCO JSON file
     output_json = output_dir / split_name / "_annotations.coco.json"
     with open(output_json, "w") as f:
         json.dump(coco_data, f, indent=2)
@@ -189,25 +159,18 @@ def main():
     dataset_dir = Path(args.dataset_dir)
     output_dir = Path(args.output_dir)
 
-    # Class information from data.yaml (with supercategories for COCO format)
     class_info = {
         0: {"name": "player", "supercategory": "person"},
         1: {"name": "ball", "supercategory": "equipment"},
         2: {"name": "event_labels", "supercategory": "annotation"},
     }
 
-    print("=" * 80)
-    print("YOLO to COCO Dataset Conversion")
-    print("=" * 80)
-    print(f"Source dataset: {dataset_dir.absolute()}")
-    print(f"Output dataset: {output_dir.absolute()}")
     print(f"Classes:")
     for class_id, info in class_info.items():
         print(f"  {class_id}: {info['name']} (supercategory: {info['supercategory']})")
     print(f"Splits: {args.splits}")
     print("=" * 80)
 
-    # Convert each split
     for split in args.splits:
         images_dir = dataset_dir / "images" / split
         labels_dir = dataset_dir / "labels" / split
@@ -228,11 +191,6 @@ def main():
             class_info=class_info,
         )
 
-    print("\n" + "=" * 80)
-    print("Conversion complete!")
-    print("=" * 80)
-    print(f"\nDataset structure:")
-    print(f"{output_dir}/")
     for split in args.splits:
         split_dir = output_dir / split
         if split_dir.exists():

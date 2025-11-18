@@ -1,10 +1,4 @@
 #!/usr/bin/env python3
-"""
-Train RF-DETR model on football dataset.
-
-This script trains a RF-DETR (Real-time Detection Transformer) model for detecting
-players, balls, and event labels in football match footage.
-"""
 
 import argparse
 import os
@@ -90,11 +84,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Create output directory
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Select model
     model_classes = {
         "nano": RFDETRNano,
         "small": RFDETRSmall,
@@ -117,7 +109,6 @@ def main():
     print("=" * 80)
     print()
 
-    # Verify dataset exists
     dataset_path = Path(args.dataset_dir)
     if not dataset_path.exists():
         raise FileNotFoundError(
@@ -125,7 +116,6 @@ def main():
             "Please run convert_yolo_to_coco.py first to create the COCO dataset."
         )
 
-    # Check for required directories
     train_dir = dataset_path / "train"
     val_dir = dataset_path / "val"
 
@@ -149,14 +139,12 @@ def main():
     print(f"  Val:   {val_ann}")
     print()
 
-    # Initialize model
     print("Initializing model...")
     ModelClass = model_classes[args.model]
     model = ModelClass()
     print(f"✓ Model initialized: {model.__class__.__name__}")
     print()
 
-    # Training history callback
     training_history = []
 
     def log_epoch(data):
@@ -164,10 +152,8 @@ def main():
         training_history.append(data)
         print(f"  Epoch {data.get('epoch', '?')}: {data}")
 
-    # Add callback
     model.callbacks["on_fit_epoch_end"].append(log_epoch)
 
-    # Start training
     print("Starting training...")
     print("=" * 80)
 
@@ -178,7 +164,7 @@ def main():
             batch_size=args.batch_size,
             grad_accum_steps=args.grad_accum_steps,
             lr=args.lr,
-            lr_encoder=args.lr / 10,  # Lower LR for encoder
+            lr_encoder=args.lr / 10, 
             output_dir=str(args.output_dir),
             device=args.device,
             checkpoint_interval=args.checkpoint_interval,
@@ -187,8 +173,8 @@ def main():
             early_stopping_patience=args.early_stopping_patience,
             early_stopping_min_delta=0.001,
             early_stopping_use_ema=True,
-            use_ema=True,  # Exponential moving average
-            amp=True,  # Automatic mixed precision
+            use_ema=True,  
+            amp=True,  
             weight_decay=1e-4,
             num_workers=args.num_workers,
         )
@@ -201,7 +187,6 @@ def main():
         print(f"✓ Best weights: {args.output_dir}/weights/best.pt")
         print()
 
-        # Print training summary
         if training_history:
             print("Training Summary:")
             print(f"  Total epochs: {len(training_history)}")
